@@ -1,20 +1,49 @@
-# metrics
+# metr.ic
 
-Welcome to your new metrics project and to the internet computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+Simple metrics canister that polls data from your application canisters. The scheduling is done off-chain using [node-cron](https://www.npmjs.com/package/node-cron).
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+## Usage
 
-To learn more before you start working with metrics, see the following documentation available online:
+In your application canister:
 
-- [Quick Start](https://sdk.dfinity.org/docs/quickstart/quickstart-intro.html)
-- [SDK Developer Tools](https://sdk.dfinity.org/docs/developers-guide/sdk-guide.html)
-- [Motoko Programming Language Guide](https://sdk.dfinity.org/docs/language-guide/motoko.html)
-- [Motoko Language Quick Reference](https://sdk.dfinity.org/docs/language-guide/language-manual.html)
+```motoko
+import T "SharedTypes";
 
-If you want to start working on your project right away, you might want to try the following commands:
+...
 
-```bash
-cd metrics/
-dfx help
-dfx config --help
+let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : T.MetricsService;
+Metrics.track({
+  // Track a new attribute
+  attributeId = null;
+
+  action = #set({
+    name = "user_count";
+
+    // Optional description
+    description = ?"Number of users who signed up.";
+
+    // Getter function to read the data value
+    getter = get_user_count;
+
+    // If frequency is specified, the Metrics service will run on this schedule
+    polling_frequency = ?{
+      n = 5;
+      period = #Minute;
+    }
+  })
+})
+```
+
+## Self-hosted
+
+You can deploy a metrics canister and run your own scheduler.
+
+```sh
+dfx canister create metrics
+dfx build metrics
+dfx deploy metrics
+
+cd scheduler
+npm i
+npm start
 ```

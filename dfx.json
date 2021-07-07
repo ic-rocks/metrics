@@ -1,20 +1,19 @@
 {
   "canisters": {
-    "metrics": {
-      "main": "src/metrics/main.mo",
+    "Counter": {
+      "main": "src/demo/Counter.mo",
       "type": "motoko"
     },
-    "metrics_assets": {
-      "dependencies": [
-        "metrics"
-      ],
+    "Metrics": {
+      "main": "src/metrics/Metrics.mo",
+      "type": "motoko"
+    },
+    "frontend": {
+      "dependencies": ["Metrics"],
       "frontend": {
-        "entrypoint": "src/metrics_assets/src/index.html"
+        "entrypoint": "src/frontend/src/index.html"
       },
-      "source": [
-        "src/metrics_assets/assets",
-        "dist/metrics_assets/"
-      ],
+      "source": ["src/frontend/assets", "dist/frontend/"],
       "type": "assets"
     }
   },

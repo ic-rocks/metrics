@@ -18,5 +18,8 @@
     "util": "0.12.3",
     "webpack": "5.24.4",
     "webpack-cli": "4.5.0"
+  },
+  "dependencies": {
+    "@dfinity/principal": "^0.9.1"
   }
 }

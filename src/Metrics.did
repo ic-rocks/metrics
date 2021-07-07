@@ -1,0 +1,78 @@
+type TrackerRequest = 
+ record {
+   action: variant {
+             delete;
+             pause;
+             set: AttributeDescription;
+             unpause;
+           };
+   attributeId: opt AttributeId;
+ };
+type TimeSeries = 
+ record {
+   timestamp: int;
+   value: int;
+ };
+type Status = 
+ variant {
+   active;
+   paused;
+ };
+type Result_2 = 
+ variant {
+   err: MetricsError;
+   ok: AttributeRecord;
+ };
+type Result = 
+ variant {
+   err: MetricsError;
+   ok;
+ };
+type MetricsResponse = Result;
+type MetricsError = 
+ variant {
+   AttributePaused;
+   FailedGettingValue;
+   InvalidId;
+   Unauthorized;
+ };
+type GetAttributeDescription = 
+ record {
+   description: opt text;
+   id: AttributeId;
+   name: text;
+   polling_frequency: opt Frequency;
+   status: Status;
+ };
+type Frequency = 
+ record {
+   n: nat;
+   period: variant {
+             Day;
+             Hour;
+             Minute;
+           };
+ };
+type AttributeRecord = 
+ record {
+   description: AttributeDescription;
+   id: AttributeId;
+   "principal": principal;
+   series: vec TimeSeries;
+   status: Status;
+ };
+type AttributeId = nat;
+type AttributeDescription = 
+ record {
+   description: opt text;
+   getter: func () -> (int);
+   name: text;
+   polling_frequency: opt Frequency;
+ };
+service : {
+  allActiveAttributes: () -> (vec GetAttributeDescription);
+  attributesByPrincipal: (principal) -> (vec GetAttributeDescription);
+  execute: (AttributeId) -> (MetricsResponse);
+  recordById: (AttributeId) -> (Result_2);
+  track: (TrackerRequest) -> (MetricsResponse);
+}
