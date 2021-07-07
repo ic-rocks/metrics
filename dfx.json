@@ -1,0 +1,34 @@
+{
+  "canisters": {
+    "metrics": {
+      "main": "src/metrics/main.mo",
+      "type": "motoko"
+    },
+    "metrics_assets": {
+      "dependencies": [
+        "metrics"
+      ],
+      "frontend": {
+        "entrypoint": "src/metrics_assets/src/index.html"
+      },
+      "source": [
+        "src/metrics_assets/assets",
+        "dist/metrics_assets/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": ""
+    }
+  },
+  "dfx": "0.7.2",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}
