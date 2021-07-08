@@ -27,15 +27,22 @@ function frequencyToCron(freq: Frequency) {
   }
 }
 
-async function main() {
+async function schedule() {
   const timestamp = new Date().toISOString();
-  const attributes = await actor.allActiveAttributes();
-  attributes
-    .filter(({ polling_frequency }) => !!polling_frequency[0])
-    .forEach(({ id, polling_frequency, status }) => {
-      const freq = frequencyToCron(polling_frequency[0]!);
 
-      let active = "active" in status;
+  let attributes;
+  try {
+    attributes = await actor.allActiveAttributes();
+  } catch (error) {
+    console.error(error.message);
+    return;
+  }
+
+  attributes.forEach(({ id, polling_frequency, status }) => {
+    const active = "active" in status;
+
+    if (polling_frequency[0]) {
+      const freq = frequencyToCron(polling_frequency[0]!);
       if (tasks.has(id)) {
         const job = tasks.get(id)!;
         if (job[0] !== freq) {
@@ -45,12 +52,14 @@ async function main() {
             } to ${freq}`
           );
           job[2].destroy();
+        } else if (active && !job[1]) {
+          console.log(`[${timestamp}] [${id}] now active, starting`);
+          job[1] = active;
+          job[2].start();
+          tasks.set(id, job);
+          return;
         } else {
           return;
-        }
-        if (active && !job[1]) {
-          console.log(`[${timestamp}] [${id}] now active, starting`);
-          job[2].start();
         }
       } else {
         console.log(`[${timestamp}] [${id}] schedule: ${freq}`);
@@ -72,10 +81,19 @@ async function main() {
               result = Object.keys(res.err)[0];
               if (result === "AttributePaused") {
                 result = `now paused, stopping`;
-                tasks.get(id)![2].stop();
+                const job = tasks.get(id)!;
+                job[1] = false;
+                job[2].stop();
+                tasks.set(id, job);
               } else if (result === "InvalidId") {
                 result = `now deleted, destroying`;
-                tasks.get(id)![2].destroy();
+                if (tasks.get(id)) {
+                  const [_f, _a, task] = tasks.get(id)!;
+                  if (task.destroy) {
+                    task.destroy();
+                  }
+                  tasks.delete(id);
+                }
               }
             }
             console.log(`[${timestamp}] [${id}] execute: ${result}`);
@@ -84,9 +102,12 @@ async function main() {
           }
         }),
       ]);
-    });
+    } else if (tasks.has(id)) {
+      tasks.delete(id);
+    }
+  });
 }
 
-cron.schedule("* */5 * * *", main);
+cron.schedule("* * * * *", schedule);
 
-main();
+schedule();

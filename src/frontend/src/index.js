@@ -35,6 +35,20 @@ const metrics = Actor.createActor(metrics_idl, {
   canisterId: metrics_id,
 });
 
+export const stringify = (data) =>
+  JSON.stringify(
+    data,
+    (key, value) =>
+      typeof value === "bigint"
+        ? value.toString()
+        : value instanceof Principal
+        ? value.toText()
+        : Buffer.isBuffer(value)
+        ? value.toString("hex")
+        : value,
+    2
+  );
+
 const add = async () => {
   const name = document.getElementById("add-function").value;
   if (!name) return;
@@ -69,27 +83,40 @@ const add = async () => {
 };
 
 const get = async () => {
-  document.getElementById("output").innerText = "Loading...";
+  const container = document.getElementById("output");
+  container.innerHTML = "Loading...";
 
   const period = document.getElementById("period").value;
-  console.log({ period });
 
+  const attributesByPrincipal = await metrics.attributesByPrincipal(
+    await agent.getPrincipal()
+  );
   const attributes = await metrics.allActiveAttributes();
-  console.log({ attributes });
+  const allAttributeIds = [
+    ...new Set(
+      attributesByPrincipal.concat(attributes).map(({ id }) => Number(id))
+    ),
+  ].sort((a, b) => a - b);
+
+  console.log({ allAttributeIds });
   const results = await Promise.all(
-    attributes.map(({ id }) =>
+    allAttributeIds.map((id) =>
       metrics.recordById({
-        attributeId: id,
+        attributeId: BigInt(id),
         before: [],
         limit: [50],
         period: period ? [{ [period]: null }] : [],
       })
     )
   );
-  const output = results.map((res) => {
+
+  container.innerHTML = "";
+  results.forEach((res) => {
     if (res.err) return res.err;
     const out = res.ok;
-    return `
+    const div = document.createElement("div");
+
+    const textarea = `<textarea>
 id: ${out.id}
 status: ${Object.keys(out.status)[0]}
 principal: ${out.principal}
@@ -109,11 +136,55 @@ ${out.series
     [new Date(Number(timestamp / BigInt(1e6))).toISOString(), value].join(" ")
   )
   .join("\n")}
-    `;
+</textarea>`;
+    div.innerHTML = textarea;
+    const feedback = document.createElement("pre");
+    const pauseButton = document.createElement("button");
+    pauseButton.innerText = "pause";
+    pauseButton.onclick = async () => {
+      feedback.innerText = "pausing...";
+      const ret = await metrics.track({
+        attributeId: [out.id],
+        action: {
+          pause: null,
+        },
+      });
+      console.log(ret);
+      feedback.innerText = stringify(ret);
+    };
+    div.appendChild(pauseButton);
+    const unpauseButton = document.createElement("button");
+    unpauseButton.innerText = "unpause";
+    unpauseButton.onclick = async () => {
+      feedback.innerText = "unpausing...";
+      const ret = await metrics.track({
+        attributeId: [out.id],
+        action: {
+          unpause: null,
+        },
+      });
+      console.log(ret);
+      feedback.innerText = stringify(ret);
+    };
+    div.appendChild(unpauseButton);
+    const deleteButton = document.createElement("button");
+    deleteButton.innerText = "delete";
+    deleteButton.onclick = async () => {
+      feedback.innerText = "deleting...";
+      const ret = await metrics.track({
+        attributeId: [out.id],
+        action: {
+          delete: null,
+        },
+      });
+      console.log(ret);
+      feedback.innerText = stringify(ret);
+    };
+    div.appendChild(deleteButton);
+    div.appendChild(feedback);
+    container.appendChild(div);
   });
   console.log({ results });
-
-  document.getElementById("output").innerText = output;
 };
 
 document.getElementById("clickMeBtn").addEventListener("click", get);

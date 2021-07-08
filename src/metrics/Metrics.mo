@@ -18,12 +18,13 @@ import ST "../SharedTypes";
 
 actor {
   let MAX_PAGE_SIZE = 200;
+  // Minimum duration in between data points to prevent duplicates
+  let MIN_TIME_BETWEEN = 30_000_000_000;
   let MINUTE_NANOSECONDS = 60_000_000_000;
   let HOUR_NANOSECONDS = 60 * MINUTE_NANOSECONDS;
   let DAY_NANOSECONDS = 24 * HOUR_NANOSECONDS;
   let WEEK_NANOSECONDS = 7 * DAY_NANOSECONDS;
 
-  stable var nextId = 0;
   stable var dataList : [var ?T.AttributeRecord] = [var];
 
   public shared({ caller }) func track(request : ST.TrackerRequest) : async ST.MetricsResponse {
@@ -45,10 +46,10 @@ actor {
         }
       };
       case null {
-        let id = nextId;
-        nextId += 1;
+        let id = dataList.size();
         switch(request.action) {
           case (#set(description_)) {
+            ignore await description_.getter();
             let newRecord : T.AttributeRecord = {
               id = id;
               principal = caller;
@@ -181,6 +182,10 @@ actor {
 
         let value = await data.description.getter();
         let ts = Time.now();
+        let last = data.series[data.series.size() - 1];
+        if (ts < last.timestamp + MIN_TIME_BETWEEN) {
+          return #err(#FailedExecution);
+        };
         dataList[id] := ?{
           id = data.id;
           principal = data.principal;

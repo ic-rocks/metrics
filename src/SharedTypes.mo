@@ -44,6 +44,7 @@ public type MetricsError = {
   #Unauthorized;
   #InvalidId;
   #FailedGettingValue;
+  #FailedExecution;
   #AttributePaused;
 };
 public type MetricsResponse = Result.Result<AttributeId, MetricsError>;
