@@ -6,10 +6,11 @@ import ST "../SharedTypes";
 actor Counter {
 
   stable var count = 0;
+  stable var attributeId : ?ST.AttributeId = null;
+  let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : ST.MetricsService;
 
-  public shared func init() : async ST.MetricsResponse {
-    let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : ST.MetricsService;
-    await Metrics.track({
+  public shared func track() : async ST.MetricsResponse {
+    let response = await Metrics.track({
       attributeId = null;
       action = #set({
         name = "counter";
@@ -20,12 +21,66 @@ actor Counter {
           period = #Minute;
         }
       })
-    })
+    });
+    attributeId := switch(response) {
+      case (#ok(id)) ?id;
+      case (#err(error)) null;
+    };
+    response
+  };
+
+  public shared func modify(desc: ST.AttributeDescription) : () {
+    switch(attributeId) {
+      case (?id) {
+        ignore await Metrics.track({
+          attributeId = ?id;
+          action = #set(desc);
+        })
+      };
+      case (_) {}
+    }
+  };
+
+  public shared func pause() : () {
+    switch(attributeId) {
+      case (?id) {
+        ignore await Metrics.track({
+          attributeId = ?id;
+          action = #pause;
+        })
+      };
+      case (_) {}
+    }
+  };
+
+  public shared func unpause() : () {
+    switch(attributeId) {
+      case (?id) {
+        ignore await Metrics.track({
+          attributeId = ?id;
+          action = #unpause;
+        })
+      };
+      case (_) {}
+    }
+  };
+
+  public shared func delete() : () {
+    switch(attributeId) {
+      case (?id) {
+        ignore await Metrics.track({
+          attributeId = ?id;
+          action = #delete;
+        });
+        attributeId := null;
+      };
+      case (_) {}
+    }
   };
 
   public shared func inc() : async () { count += 1 };
 
-  public shared func read() : async Nat { count };
+  public shared query func read() : async Nat { count };
 
   public shared func bump() : async Nat {
     count += 1;

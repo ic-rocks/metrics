@@ -89,9 +89,7 @@ async function schedule() {
                 result = `now deleted, destroying`;
                 if (tasks.get(id)) {
                   const [_f, _a, task] = tasks.get(id)!;
-                  if (task.destroy) {
-                    task.destroy();
-                  }
+                  task.stop();
                   tasks.delete(id);
                 }
               }

@@ -28,13 +28,31 @@ type Result =
    err: MetricsError;
    ok: AttributeId;
  };
+type Period = 
+ variant {
+   Day;
+   Hour;
+   Minute;
+ };
 type MetricsResponse = Result;
 type MetricsError = 
  variant {
    AttributePaused;
+   FailedExecution;
    FailedGettingValue;
    InvalidId;
    Unauthorized;
+ };
+type Metrics = 
+ service {
+   allActiveAttributes: () -> (vec GetAttributeDescription) query;
+   attributesByPrincipal: (principal) -> (vec GetAttributeDescription) query;
+   cycles: () -> (nat) query;
+   execute: (AttributeId) -> (MetricsResponse);
+   init: () -> (opt AttributeId, opt AttributeId);
+   memory: () -> (nat) query;
+   recordById: (GetRequest) -> (Result_2) query;
+   track: (TrackerRequest) -> (MetricsResponse);
  };
 type GetRequest = 
  record {
@@ -61,11 +79,7 @@ type GetAttributeDescription =
 type Frequency = 
  record {
    n: nat;
-   period: variant {
-             Day;
-             Hour;
-             Minute;
-           };
+   period: Period;
  };
 type AttributeRecord = 
  record {
@@ -79,14 +93,8 @@ type AttributeId = nat;
 type AttributeDescription = 
  record {
    description: opt text;
-   getter: func () -> (int);
+   getter: func () -> (int) query;
    name: text;
    polling_frequency: opt Frequency;
  };
-service : {
-  allActiveAttributes: () -> (vec GetAttributeDescription) query;
-  attributesByPrincipal: (principal) -> (vec GetAttributeDescription) query;
-  execute: (AttributeId) -> (MetricsResponse);
-  recordById: (GetRequest) -> (Result_2) query;
-  track: (TrackerRequest) -> (MetricsResponse);
-}
+service : () -> Metrics

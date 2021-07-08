@@ -1,6 +1,16 @@
-# metr.ic
+# metrics
 
-Simple metrics canister that polls data from your application canisters. The scheduling is done off-chain using [node-cron](https://www.npmjs.com/package/node-cron).
+Simple pull-based metrics canister that retrieves data from your application canisters on a specified schedule. The scheduling is done off-chain using [node-cron](https://www.npmjs.com/package/node-cron).
+
+For example, you can:
+
+- Track user count every day
+- Track memory usage every hour
+- Track ICP balance every minute
+
+Tracked data must be a `Nat` or `Int`. Currently, the minimum polling frequency is **one minute**.
+
+The Metrics service makes all of its tracked data public and is consumed by [ic.rocks](https://ic.rocks).
 
 ## Usage
 
@@ -10,9 +20,12 @@ In your application canister:
 import T "SharedTypes";
 
 ...
+// This is the data you want to track
+// Must be a shared function returning Nat or Int
+public shared func get_user_count() : async Nat { ... };
 
 let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : T.MetricsService;
-Metrics.track({
+let response = await Metrics.track({
   // Track a new attribute
   attributeId = null;
 
@@ -31,8 +44,77 @@ Metrics.track({
       period = #Minute;
     }
   })
+});
+
+// Save the attributeId
+let attributeId = switch(response) {
+  case (#ok(id)) ?id;
+  case (#err(error)) null;
+};
+```
+
+### Listing Tracked Data
+
+List all tracked data attributes for this Principal.
+
+```
+let myId : Principal = "...";
+Metrics.attributesByPrincipal(myId);
+```
+
+### Modifying Details
+
+You can modify details like name, description, or schedule. Only the principal that requested the tracking can modify it.
+
+```
+Metrics.track({
+  attributeId = ?attributeId;
+  action = #set({
+    name = "user_count_hourly";
+    description = ?"Number of users who signed up, per hour.";
+    getter = get_user_count;
+    polling_frequency = ?{
+      n = 1;
+      period = #Hour;
+    }
+  })
 })
 ```
+
+### Pausing/unpausing tracking
+
+You can pause tracking temporarily and resume later.
+
+```
+Metrics.track({
+  attributeId = ?attributeId;
+  action = #pause;
+})
+
+Metrics.track({
+  attributeId = ?attributeId;
+  action = #unpause;
+})
+```
+
+### Tracking cycles and memory
+
+Add these functions for simple way to introspect cycles and memory.
+
+```
+import Prim "mo:prim";
+import ExperimentalCycles "mo:base/ExperimentalCycles";
+
+public query func memory() : async Nat {
+  Prim.rts_max_live_size()
+};
+
+public query func cycles() : async Nat {
+  ExperimentalCycles.balance()
+};
+```
+
+Then, track these attributes as usual.
 
 ## Self-hosted
 

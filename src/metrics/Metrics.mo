@@ -2,6 +2,7 @@ import Prim "mo:prim";
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Error "mo:base/Error";
+import ExperimentalCycles "mo:base/ExperimentalCycles";
 import HashMap "mo:base/HashMap";
 import Int "mo:base/Int";
 import Nat "mo:base/Nat";
@@ -16,7 +17,7 @@ import T "Types";
 import ST "../SharedTypes";
 
 
-actor {
+actor class Metrics() {
   let MAX_PAGE_SIZE = 200;
   // Minimum duration in between data points to prevent duplicates
   let MIN_TIME_BETWEEN = 30_000_000_000;
@@ -26,6 +27,53 @@ actor {
   let WEEK_NANOSECONDS = 7 * DAY_NANOSECONDS;
 
   stable var dataList : [var ?T.AttributeRecord] = [var];
+  stable var selfMemory : ?ST.AttributeId = null;
+  stable var selfCycles : ?ST.AttributeId = null;
+
+  public func init() : async (?ST.AttributeId, ?ST.AttributeId) {
+    assert(selfMemory == null);
+    assert(selfCycles == null);
+
+    selfMemory := switch(await track({
+      attributeId = null;
+      action = #set({
+        name = "Memory";
+        description = ?"Metrics memory usage";
+        getter = memory;
+        polling_frequency = ?{
+          n = 1;
+          period = #Hour;
+        }
+      })
+    })) {
+      case (#ok(id)) ?id;
+      case (#err(error)) null;
+    };
+    selfCycles := switch(await track({
+      attributeId = null;
+      action = #set({
+        name = "Cycles";
+        description = ?"Metrics cycles balance";
+        getter = cycles;
+        polling_frequency = ?{
+          n = 1;
+          period = #Hour;
+        }
+      })
+    })) {
+      case (#ok(id)) ?id;
+      case (#err(error)) null;
+    };
+    (selfMemory, selfCycles)
+  };
+
+  public shared query func memory() : async Nat {
+    Prim.rts_max_live_size()
+  };
+
+  public shared query func cycles() : async Nat {
+    ExperimentalCycles.balance()
+  };
 
   public shared({ caller }) func track(request : ST.TrackerRequest) : async ST.MetricsResponse {
     let (id, data) = switch(request.attributeId) {
@@ -182,9 +230,15 @@ actor {
 
         let value = await data.description.getter();
         let ts = Time.now();
-        let last = data.series[data.series.size() - 1];
-        if (ts < last.timestamp + MIN_TIME_BETWEEN) {
-          return #err(#FailedExecution);
+        // Ensure minimum duration
+        switch(data.series.size()) {
+          case 0 {};
+          case n {
+            let last = data.series[n - 1];
+            if (ts < last.timestamp + MIN_TIME_BETWEEN) {
+              return #err(#FailedExecution);
+            };
+          }
         };
         dataList[id] := ?{
           id = data.id;

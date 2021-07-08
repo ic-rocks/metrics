@@ -3,9 +3,10 @@ import Result "mo:base/Result";
 
 module {
 public type AttributeId = Nat;
+public type Period = { #Minute; #Hour; #Day };
 public type Frequency = {
   n: Nat;
-  period: { #Minute; #Hour; #Day };
+  period: Period;
 };
 public type AttributeDescription = {
   // Name of the attribute to be tracked
@@ -15,7 +16,7 @@ public type AttributeDescription = {
   description: ?Text;
 
   // Getter function should return the value to be tracked
-  getter: shared () -> async Int;
+  getter: shared query () -> async Int;
 
   // Specify a frequency to store periodic snapshots
   polling_frequency: ?Frequency;
