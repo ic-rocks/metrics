@@ -29,14 +29,49 @@ const stringify = (data) =>
 const get = async () => {
   document.getElementById("output").innerText = "Loading...";
 
+  const period = document.getElementById("period").value;
+  console.log({ period });
+
   const attributes = await metrics.allActiveAttributes();
   console.log({ attributes });
   const results = await Promise.all(
-    attributes.map(({ id }) => metrics.recordById(id))
+    attributes.map(({ id }) =>
+      metrics.recordById({
+        attributeId: id,
+        before: [],
+        limit: [50],
+        period: period ? [{ [period]: null }] : [],
+      })
+    )
   );
+  const output = results.map((res) => {
+    if (res.err) return res.err;
+    const out = res.ok;
+    return `
+id: ${out.id}
+status: ${Object.keys(out.status)[0]}
+principal: ${out.principal}
+name: ${out.description.name}
+description: ${out.description.description[0] || ""}
+polling_frequency: ${
+      out.description.polling_frequency[0]
+        ? `${out.description.polling_frequency[0].n} ${
+            Object.keys(out.description.polling_frequency[0].period)[0]
+          }`
+        : ""
+    }
+getter: ${out.description.getter.join(".")}
+series:
+${out.series
+  .map(({ value, timestamp }) =>
+    [new Date(Number(timestamp / BigInt(1e6))).toISOString(), value].join(" ")
+  )
+  .join("\n")}
+    `;
+  });
   console.log({ results });
 
-  document.getElementById("output").innerText = stringify(results);
+  document.getElementById("output").innerText = output;
 };
 
 document.getElementById("clickMeBtn").addEventListener("click", get);

@@ -48,6 +48,14 @@ public type MetricsError = {
 };
 public type MetricsResponse = Result.Result<(), MetricsError>;
 
+public type GetPeriod = { #Minute; #Hour; #Day; #Week };
+public type GetRequest = {
+  attributeId: AttributeId;
+  before: ?Int;
+  limit: ?Nat;
+  period: ?GetPeriod;
+};
+
 public type MetricsService = actor {
   track : TrackerRequest -> async MetricsResponse;
 }

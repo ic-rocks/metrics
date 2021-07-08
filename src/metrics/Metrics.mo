@@ -1,3 +1,4 @@
+import Prim "mo:prim";
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Error "mo:base/Error";
@@ -14,7 +15,14 @@ import Result "mo:base/Result";
 import T "Types";
 import ST "../SharedTypes";
 
+
 actor {
+  let MAX_PAGE_SIZE = 200;
+  let MINUTE_NANOSECONDS = 60_000_000_000;
+  let HOUR_NANOSECONDS = 60 * MINUTE_NANOSECONDS;
+  let DAY_NANOSECONDS = 24 * HOUR_NANOSECONDS;
+  let WEEK_NANOSECONDS = 7 * DAY_NANOSECONDS;
+
   stable var nextId = 0;
   stable var dataList : [var ?T.AttributeRecord] = [var];
 
@@ -88,7 +96,7 @@ actor {
     #ok
   };
 
-  public shared func attributesByPrincipal(principal : Principal) : async [T.GetAttributeDescription] {
+  public query func attributesByPrincipal(principal : Principal) : async [T.GetAttributeDescription] {
     Array.mapFilter<?T.AttributeRecord, T.GetAttributeDescription>(
       Array.freeze(dataList),
       func(rec: ?T.AttributeRecord) {
@@ -111,7 +119,7 @@ actor {
     )
   };
 
-  public shared func allActiveAttributes() : async [T.GetAttributeDescription] {
+  public query func allActiveAttributes() : async [T.GetAttributeDescription] {
     Array.mapFilter<?T.AttributeRecord, T.GetAttributeDescription>(
       Array.freeze(dataList),
       func(rec: ?T.AttributeRecord) {
@@ -134,13 +142,21 @@ actor {
     )
   };
 
-  public shared func recordById(id: ST.AttributeId) : async Result.Result<T.AttributeRecord, ST.MetricsError> {
-    switch(dataList[id]) {
+  public query func recordById(request: ST.GetRequest) : async Result.Result<T.AttributeRecord, ST.MetricsError> {
+
+    switch(dataList[request.attributeId]) {
       case null {
         #err(#InvalidId);
       };
       case (?data) {
-        #ok(data)
+
+        #ok({
+          id = data.id;
+          principal = data.principal;
+          description = data.description;
+          series = readSeries(data.series, request.before, request.limit, request.period);
+          status = data.status;
+        })
       }
     }
   };
@@ -174,5 +190,61 @@ actor {
         #ok
       }
     }
-  }
+  };
+
+  func readSeries(arr: [T.TimeSeries], maybeBefore: ?Int, maybeLimit: ?Nat, maybePeriod: ?ST.GetPeriod): [T.TimeSeries] {
+    let limit = Nat.min(Option.get(maybeLimit, MAX_PAGE_SIZE), MAX_PAGE_SIZE);
+
+    let timeEnd = switch(maybeBefore) {
+      case (?before) before;
+      case null      Time.now();
+    };
+
+    let timeOffset = switch(maybePeriod) {
+      case (?(#Minute)) ?MINUTE_NANOSECONDS;
+      case (?(#Hour))   ?HOUR_NANOSECONDS;
+      case (?(#Day))    ?DAY_NANOSECONDS;
+      case (?(#Week))   ?WEEK_NANOSECONDS;
+      case null         null;
+    };
+    switch(timeOffset) {
+      // Requesting a specific period.
+      // Iterate backwards by timestamp and get the item immediately before that timestamp
+      case (?offset) {
+        let output = Buffer.Buffer<T.TimeSeries>(limit);
+        var idx = arr.size();
+        var count = 0;
+        var timeCurr = timeEnd - (timeEnd % offset);
+        while (idx > 0 and count < limit) {
+          let item = arr[idx - 1];
+          if (item.timestamp <= timeCurr) {
+            output.add({
+              timestamp = timeCurr;
+              value = item.value;
+            });
+            timeCurr -= offset;
+            count += 1;
+          } else {
+            idx -= 1;
+          }
+        };
+        output.toArray()
+      };
+
+      // Just return the raw data
+      case null {
+        let filtered = Array.filter<T.TimeSeries>(arr, func(ts) {
+          ts.timestamp < timeEnd
+        });
+        let size = filtered.size();
+        if (size == 0 or limit == 0) {
+          return [];
+        };
+
+        Prim.Array_tabulate<T.TimeSeries>(Nat.min(limit, size), func (i) {
+          filtered.get(size - i - 1);
+        });
+      }
+    }
+  };
 };

@@ -65,11 +65,14 @@ async function main() {
         freq,
         active,
         cron.schedule(freq, async () => {
+          const timestamp = new Date().toISOString();
           try {
             const res = await actor.execute(id);
-            console.log(`[${id}] execute: ${"ok" in res ? "ok" : res.err}`);
+            console.log(
+              `[${timestamp}] [${id}] execute: ${"ok" in res ? "ok" : res.err}`
+            );
           } catch (error) {
-            console.log(`[${id}] execute: ${error.message}`);
+            console.log(`[${timestamp}] [${id}] execute: ${error.message}`);
           }
         }),
       ]);

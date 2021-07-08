@@ -10,34 +10,32 @@
 body {
     font-family: sans-serif;
     font-size: 1.2rem;
-}
-
-img {
-    max-width: 50vw;
-    max-height: 25vw;
-    display: block;
-    margin: auto;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    gap: 1rem;
 }
 section {
-    display: flex;
-    flex-flow: row wrap;
-    max-width: 40vw;
-    margin: auto;
-    align-items: baseline;
+    max-width: 40rem;
 }
-
-#clickMeBtn {
+button, select {
     padding: 5px 20px;
-    margin: 10px auto;
-    float: right;
-    font-size: 2rem;
 }
     </style>
 </head>
 <body>
-    <section>
+    <section class="form">
+        <select id="period">
+            <option value="">No period</option>
+            <option value="Minute">Minute</option>
+            <option value="Hour">Hour</option>
+            <option value="Day">Day</option>
+            <option value="Week">Week</option>
+        </select>
         <button id="clickMeBtn">Fetch Latest</button>
     </section>
-    <pre id="output"></pre>
+    <section>
+        <pre id="output" />
+    </section>
 </body>
 </html>
