@@ -1,8 +1,11 @@
-import ST "../SharedTypes"
+import Prim "mo:prim";
+import Principal "mo:base/Principal";
+import ExperimentalCycles "mo:base/ExperimentalCycles";
+import ST "../SharedTypes";
 
 actor Counter {
 
-  var count = 0;
+  stable var count = 0;
 
   public shared func init() : async ST.MetricsResponse {
     let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : ST.MetricsService;
@@ -27,5 +30,13 @@ actor Counter {
   public shared func bump() : async Nat {
     count += 1;
     count;
+  };
+
+  public query func memory() : async Nat {
+    Prim.rts_max_live_size()
+  };
+
+  public query func cycles() : async Nat {
+    ExperimentalCycles.balance()
   };
 };

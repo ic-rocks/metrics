@@ -1,30 +1,72 @@
 import { Principal } from "@dfinity/principal";
 import { Actor, HttpAgent } from "@dfinity/agent";
+import { Ed25519KeyIdentity } from "@dfinity/identity";
 import {
   idlFactory as metrics_idl,
   canisterId as metrics_id,
 } from "dfx-generated/Metrics";
+import { canisterId as CounterId } from "dfx-generated/Counter";
 
-const agent = new HttpAgent({ host: "http://127.0.0.1:8000" });
+function newIdentity() {
+  const entropy = crypto.getRandomValues(new Uint8Array(32));
+  const identity = Ed25519KeyIdentity.generate(entropy);
+  localStorage.setItem("id", JSON.stringify(identity));
+  return identity;
+}
+
+function readIdentity() {
+  const stored = localStorage.getItem("id");
+  if (!stored) {
+    return newIdentity();
+  }
+  try {
+    return Ed25519KeyIdentity.fromJSON(stored);
+  } catch (error) {
+    console.log(error);
+    return newIdentity();
+  }
+}
+
+const identity = readIdentity();
+const agent = new HttpAgent({ identity, host: "http://127.0.0.1:8000" });
 agent.fetchRootKey();
 const metrics = Actor.createActor(metrics_idl, {
   agent,
   canisterId: metrics_id,
 });
 
-const stringify = (data) =>
-  JSON.stringify(
-    data,
-    (key, value) =>
-      typeof value === "bigint"
-        ? value.toString()
-        : value instanceof Principal
-        ? value.toText()
-        : Buffer.isBuffer(value)
-        ? value.toString("hex")
-        : value,
-    2
-  );
+const add = async () => {
+  const name = document.getElementById("add-function").value;
+  if (!name) return;
+  const freqN = document.getElementById("frequency-n").value;
+  const freqPeriod = document.getElementById("frequency-period").value;
+
+  const request = {
+    attributeId: [],
+    action: {
+      set: {
+        name,
+        description: [`Added using UI: ${name}`],
+        getter: [Principal.fromText(CounterId), name],
+        polling_frequency: [
+          {
+            n: BigInt(freqN),
+            period: {
+              [freqPeriod]: null,
+            },
+          },
+        ],
+      },
+    },
+  };
+  document.getElementById("add-output").innerText = `Submitting...`;
+  const newId = await metrics.track(request);
+  console.log({ newId });
+
+  document.getElementById(
+    "add-output"
+  ).innerText = `New attribute id: ${newId.ok}`;
+};
 
 const get = async () => {
   document.getElementById("output").innerText = "Loading...";
@@ -75,5 +117,7 @@ ${out.series
 };
 
 document.getElementById("clickMeBtn").addEventListener("click", get);
+
+document.getElementById("add").addEventListener("click", add);
 
 get();

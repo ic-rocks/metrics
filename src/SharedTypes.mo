@@ -46,7 +46,7 @@ public type MetricsError = {
   #FailedGettingValue;
   #AttributePaused;
 };
-public type MetricsResponse = Result.Result<(), MetricsError>;
+public type MetricsResponse = Result.Result<AttributeId, MetricsError>;
 
 public type GetPeriod = { #Minute; #Hour; #Day; #Week };
 public type GetRequest = {

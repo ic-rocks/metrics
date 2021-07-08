@@ -19,15 +19,16 @@ function frequencyToCron(freq: Frequency) {
   if ("Minute" in freq.period) {
     return `*/${freq.n} * * * *`;
   } else if ("Hour" in freq.period) {
-    return `* */${freq.n} * * *`;
+    return `0 */${freq.n} * * *`;
   } else if ("Day" in freq.period) {
-    return `* * */${freq.n} * *`;
+    return `0 0 */${freq.n} * *`;
   } else {
     throw "invalid frequency";
   }
 }
 
 async function main() {
+  const timestamp = new Date().toISOString();
   const attributes = await actor.allActiveAttributes();
   attributes
     .filter(({ polling_frequency }) => !!polling_frequency[0])
@@ -39,22 +40,20 @@ async function main() {
         const job = tasks.get(id)!;
         if (job[0] !== freq) {
           console.log(
-            `[${id}] schedule changed from ${tasks.get(id)![0]} to ${freq}`
+            `[${timestamp}] [${id}] schedule changed from ${
+              tasks.get(id)![0]
+            } to ${freq}`
           );
           job[2].destroy();
         } else {
           return;
         }
-        if (job[1] !== active) {
-          console.log(`[${id}] active changed from ${job[1]} to ${active}`);
-          if (active) {
-            job[2].start();
-          } else {
-            job[2].stop();
-          }
+        if (active && !job[1]) {
+          console.log(`[${timestamp}] [${id}] now active, starting`);
+          job[2].start();
         }
       } else {
-        console.log(`[${id}] schedule: ${freq}`);
+        console.log(`[${timestamp}] [${id}] schedule: ${freq}`);
       }
 
       if (!active) {
@@ -68,9 +67,18 @@ async function main() {
           const timestamp = new Date().toISOString();
           try {
             const res = await actor.execute(id);
-            console.log(
-              `[${timestamp}] [${id}] execute: ${"ok" in res ? "ok" : res.err}`
-            );
+            let result = "ok";
+            if (!("ok" in res)) {
+              result = Object.keys(res.err)[0];
+              if (result === "AttributePaused") {
+                result = `now paused, stopping`;
+                tasks.get(id)![2].stop();
+              } else if (result === "InvalidId") {
+                result = `now deleted, destroying`;
+                tasks.get(id)![2].destroy();
+              }
+            }
+            console.log(`[${timestamp}] [${id}] execute: ${result}`);
           } catch (error) {
             console.log(`[${timestamp}] [${id}] execute: ${error.message}`);
           }

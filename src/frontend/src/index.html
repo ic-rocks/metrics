@@ -25,6 +25,23 @@ button, select {
 </head>
 <body>
     <section class="form">
+        <select id="add-function">
+            <option value="">Track new attribute...</option>
+            <option value="memory">memory</option>
+            <option value="cycles">cycles</option>
+        </select>
+        <input type="number" id="frequency-n" value="5" />
+        <select id="frequency-period">
+            <option value="Minute" selected>Minute</option>
+            <option value="Hour">Hour</option>
+            <option value="Day">Day</option>
+        </select>
+        <button id="add">Add</button>
+    </section>
+    <section>
+        <pre id="add-output" />
+    </section>
+    <section class="form">
         <select id="period">
             <option value="">No period</option>
             <option value="Minute">Minute</option>

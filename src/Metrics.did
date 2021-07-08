@@ -26,7 +26,7 @@ type Result_2 =
 type Result = 
  variant {
    err: MetricsError;
-   ok;
+   ok: AttributeId;
  };
 type MetricsResponse = Result;
 type MetricsError = 
@@ -35,6 +35,20 @@ type MetricsError =
    FailedGettingValue;
    InvalidId;
    Unauthorized;
+ };
+type GetRequest = 
+ record {
+   attributeId: AttributeId;
+   before: opt int;
+   limit: opt nat;
+   period: opt GetPeriod;
+ };
+type GetPeriod = 
+ variant {
+   Day;
+   Hour;
+   Minute;
+   Week;
  };
 type GetAttributeDescription = 
  record {
@@ -70,9 +84,9 @@ type AttributeDescription =
    polling_frequency: opt Frequency;
  };
 service : {
-  allActiveAttributes: () -> (vec GetAttributeDescription);
-  attributesByPrincipal: (principal) -> (vec GetAttributeDescription);
+  allActiveAttributes: () -> (vec GetAttributeDescription) query;
+  attributesByPrincipal: (principal) -> (vec GetAttributeDescription) query;
   execute: (AttributeId) -> (MetricsResponse);
-  recordById: (AttributeId) -> (Result_2);
+  recordById: (GetRequest) -> (Result_2) query;
   track: (TrackerRequest) -> (MetricsResponse);
 }

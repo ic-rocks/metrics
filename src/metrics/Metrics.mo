@@ -29,6 +29,9 @@ actor {
   public shared({ caller }) func track(request : ST.TrackerRequest) : async ST.MetricsResponse {
     let (id, data) = switch(request.attributeId) {
       case (?id_) {
+        if (id_ >= dataList.size()) {
+          return #err(#InvalidId);
+        };
         switch(dataList[id_]) {
           case null {
             return #err(#InvalidId);
@@ -93,7 +96,7 @@ actor {
         dataList[id] := null;
       }
     };
-    #ok
+    #ok(id)
   };
 
   public query func attributesByPrincipal(principal : Principal) : async [T.GetAttributeDescription] {
@@ -143,7 +146,9 @@ actor {
   };
 
   public query func recordById(request: ST.GetRequest) : async Result.Result<T.AttributeRecord, ST.MetricsError> {
-
+    if (request.attributeId >= dataList.size()) {
+      return #err(#InvalidId);
+    };
     switch(dataList[request.attributeId]) {
       case null {
         #err(#InvalidId);
@@ -187,7 +192,7 @@ actor {
           status = data.status;
         };
         Debug.print("[" # Int.toText(ts) # "] id=" # Nat.toText(id) # ", value=" # Int.toText(value));
-        #ok
+        #ok(id)
       }
     }
   };
