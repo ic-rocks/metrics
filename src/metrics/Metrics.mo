@@ -75,6 +75,10 @@ actor class Metrics() {
   };
 
   public shared({ caller }) func track(request : T.TrackerRequest) : async T.MetricsResponse {
+    if (caller == Principal.fromText("2vxsx-fae")) {
+      return #err(#Unauthorized);
+    };
+
     let (id, data) = switch(request.attributeId) {
       case (?id_) {
         if (id_ >= dataList.size()) {

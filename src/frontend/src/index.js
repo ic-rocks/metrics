@@ -58,7 +58,7 @@ const add = async () => {
   const request = {
     attributeId: [],
     action: {
-      set: {
+      Set: {
         name,
         description: [`Added using UI: ${name}`],
         getter: [Principal.fromText(CounterId), name],
@@ -146,7 +146,7 @@ ${out.series
       const ret = await metrics.track({
         attributeId: [out.id],
         action: {
-          pause: null,
+          Pause: null,
         },
       });
       console.log(ret);
@@ -160,7 +160,7 @@ ${out.series
       const ret = await metrics.track({
         attributeId: [out.id],
         action: {
-          unpause: null,
+          Unpause: null,
         },
       });
       console.log(ret);
@@ -174,7 +174,7 @@ ${out.series
       const ret = await metrics.track({
         attributeId: [out.id],
         action: {
-          delete: null,
+          Delete: null,
         },
       });
       console.log(ret);
