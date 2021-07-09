@@ -24,7 +24,7 @@ import T "SharedTypes";
 // Must be a shared function returning Nat or Int
 public shared func get_user_count() : async Nat { ... };
 
-let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : T.MetricsService;
+let Metrics = actor "bsusq-diaaa-aaaah-qac5q-cai" : T.MetricsService;
 let response = await Metrics.track({
   // Track a new attribute
   attributeId = null;
@@ -51,6 +51,19 @@ let attributeId = switch(response) {
   case (#ok(id)) ?id;
   case (#err(error)) null;
 };
+```
+
+### Get Data Series
+
+You can read raw data or get data by minute/hour/day/week. If `period` is specified, this will return the latest data point that is before each time period. Returns a maximum of 200 data points. You may specify a `before` timestamp for pagination.
+
+```
+Metrics.recordById({
+  attributeId = someId;
+  before = null;
+  limit = null;
+  period = ?(#Day);
+})
 ```
 
 ### Listing Tracked Data
@@ -106,7 +119,7 @@ import Prim "mo:prim";
 import ExperimentalCycles "mo:base/ExperimentalCycles";
 
 public query func memory() : async Nat {
-  Prim.rts_max_live_size()
+  Prim.rts_heap_size()
 };
 
 public query func cycles() : async Nat {
@@ -115,6 +128,8 @@ public query func cycles() : async Nat {
 ```
 
 Then, track these attributes as usual.
+
+---
 
 ## Self-hosted
 

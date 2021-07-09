@@ -1,16 +1,15 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
 import cron from "node-cron";
 import fetch from "node-fetch";
-import Metrics, { Frequency } from "../.dfx/local/canisters/Metrics/Metrics.d";
-import idlFactory from "../.dfx/local/canisters/Metrics/Metrics.did.js";
-import canisterIds from "../.dfx/local/canister_ids.json";
+import Metrics, { Frequency } from "../.dfx/ic/canisters/Metrics/Metrics.d";
+import idlFactory from "../.dfx/ic/canisters/Metrics/Metrics.did.js";
 (global as any).fetch = fetch;
 
-const agent = new HttpAgent({ host: "http://127.0.0.1:8000" });
+const agent = new HttpAgent({ host: "https://ic0.app" });
 agent.fetchRootKey();
 const actor = Actor.createActor<Metrics>(idlFactory, {
   agent,
-  canisterId: canisterIds.Metrics.local,
+  canisterId: "bsusq-diaaa-aaaah-qac5q-cai",
 });
 
 let tasks = new Map<bigint, [string, boolean, cron.ScheduledTask]>();

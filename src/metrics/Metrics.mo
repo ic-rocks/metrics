@@ -68,7 +68,7 @@ actor class Metrics() {
   };
 
   public shared query func memory() : async Nat {
-    Prim.rts_max_live_size()
+    Prim.rts_heap_size()
   };
 
   public shared query func cycles() : async Nat {
