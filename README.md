@@ -78,7 +78,7 @@ let track_args = TrackerRequest {
     }),
 };
 let result: CallResult<(MetricsResponse,)> = ic_cdk::api::call::call(
-    Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap(),
+    Principal::from_text("bsusq-diaaa-aaaah-qac5q-cai").unwrap(),
     "track",
     (&track_args,),
 )
