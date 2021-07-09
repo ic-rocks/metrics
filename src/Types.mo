@@ -28,16 +28,16 @@ public type TrackerRequest = {
 
   action: {
     // Create or update an attribute
-    #set: AttributeDescription;
+    #Set: AttributeDescription;
 
     // Start tracking this data attribute if paused
-    #unpause;
+    #Unpause;
 
     // Stop tracking this data attribute
-    #pause;
+    #Pause;
 
     // Remove all stored data for this attribute
-    #delete;
+    #Delete;
   }
 };
 

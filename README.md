@@ -33,7 +33,7 @@ let response = await Metrics.track({
   // Track a new attribute
   attributeId = null;
 
-  action = #set({
+  action = #Set({
     name = "user_count";
 
     // Optional description
@@ -86,7 +86,7 @@ You can modify details like name, description, or schedule. Only the principal t
 ```
 Metrics.track({
   attributeId = ?attributeId;
-  action = #set({
+  action = #Set({
     name = "user_count_hourly";
     description = ?"Number of users who signed up, per hour.";
     getter = get_user_count;
@@ -105,16 +105,16 @@ You can pause tracking temporarily and resume later.
 ```
 Metrics.track({
   attributeId = ?attributeId;
-  action = #pause;
+  action = #Pause;
 })
 
 Metrics.track({
   attributeId = ?attributeId;
-  action = #unpause;
+  action = #Unpause;
 })
 ```
 
-You can also delete the entire data attribute and history by specifying the `#delete` action. **WARNING**: This is non-reversible!
+You can also delete the entire data attribute and history by specifying the `#Delete` action. **WARNING**: This is non-reversible!
 
 ### Tracking cycles and memory
 

@@ -1,10 +1,10 @@
 type TrackerRequest = 
  record {
    action: variant {
-             delete;
-             pause;
-             set: AttributeDescription;
-             unpause;
+             Delete;
+             Pause;
+             Set: AttributeDescription;
+             Unpause;
            };
    attributeId: opt AttributeId;
  };

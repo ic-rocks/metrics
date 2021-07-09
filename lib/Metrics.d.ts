@@ -60,10 +60,10 @@ export type Status = { 'active' : null } |
   { 'paused' : null };
 export interface TimeSeries { 'value' : bigint, 'timestamp' : bigint };
 export interface TrackerRequest {
-  'action' : { 'set' : AttributeDescription } |
-    { 'delete' : null } |
-    { 'unpause' : null } |
-    { 'pause' : null },
+  'action' : { 'Set' : AttributeDescription } |
+    { 'Pause' : null } |
+    { 'Unpause' : null } |
+    { 'Delete' : null },
   'attributeId' : [] | [AttributeId],
 };
 export default Metrics;

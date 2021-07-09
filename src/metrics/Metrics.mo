@@ -35,7 +35,7 @@ actor class Metrics() {
 
     selfMemory := switch(await track({
       attributeId = null;
-      action = #set({
+      action = #Set({
         name = "Memory";
         description = ?"Metrics memory usage";
         getter = memory;
@@ -50,7 +50,7 @@ actor class Metrics() {
     };
     selfCycles := switch(await track({
       attributeId = null;
-      action = #set({
+      action = #Set({
         name = "Cycles";
         description = ?"Metrics cycles balance";
         getter = cycles;
@@ -95,7 +95,7 @@ actor class Metrics() {
       case null {
         let id = dataList.size();
         switch(request.action) {
-          case (#set(description_)) {
+          case (#Set(description_)) {
             ignore await description_.getter();
             let newRecord : T.AttributeRecord = {
               id = id;
@@ -114,7 +114,7 @@ actor class Metrics() {
     };
     Debug.print("id " # Nat.toText(id));
     switch(request.action) {
-      case (#set(_)) {
+      case (#Set(_)) {
         if (id >= dataList.size()) {
           let newList : [?T.AttributeRecord] = Array.append(Array.freeze(dataList), [?data]);
           dataList := Array.thaw(newList);
@@ -122,7 +122,7 @@ actor class Metrics() {
           dataList[id] := ?data;
         }
       };
-      case (#unpause) {
+      case (#Unpause) {
         dataList[id] := ?{
           id = id;
           principal = data.principal;
@@ -131,7 +131,7 @@ actor class Metrics() {
           status = #active;
         };
       };
-      case (#pause) {
+      case (#Pause) {
         dataList[id] := ?{
           id = id;
           principal = data.principal;
@@ -140,7 +140,7 @@ actor class Metrics() {
           status = #paused;
         };
       };
-      case (#delete) {
+      case (#Delete) {
         dataList[id] := null;
       }
     };

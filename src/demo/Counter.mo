@@ -12,7 +12,7 @@ actor Counter {
   public shared func track() : async T.MetricsResponse {
     let response = await Metrics.track({
       attributeId = null;
-      action = #set({
+      action = #Set({
         name = "counter";
         description = ?"the best counter";
         getter = read;
@@ -34,7 +34,7 @@ actor Counter {
       case (?id) {
         ignore await Metrics.track({
           attributeId = ?id;
-          action = #set(desc);
+          action = #Set(desc);
         })
       };
       case (_) {}
@@ -46,7 +46,7 @@ actor Counter {
       case (?id) {
         ignore await Metrics.track({
           attributeId = ?id;
-          action = #pause;
+          action = #Pause;
         })
       };
       case (_) {}
@@ -58,7 +58,7 @@ actor Counter {
       case (?id) {
         ignore await Metrics.track({
           attributeId = ?id;
-          action = #unpause;
+          action = #Unpause;
         })
       };
       case (_) {}
@@ -70,7 +70,7 @@ actor Counter {
       case (?id) {
         ignore await Metrics.track({
           attributeId = ?id;
-          action = #delete;
+          action = #Delete;
         });
         attributeId := null;
       };
