@@ -24,9 +24,9 @@ Grab the [candid](./lib/Metrics.did) or [motoko types](./src/Types.mo). In your 
 import T "Types";
 
 ...
-// This is the data you want to track
-// Must be a shared function returning Nat or Int
-public shared func get_user_count() : async Nat { ... };
+// This is the single value you want to track
+// Must be a shared query function returning Nat or Int
+public shared query func get_user_count() : async Nat { ... };
 
 let Metrics = actor "bsusq-diaaa-aaaah-qac5q-cai" : T.MetricsService;
 let response = await Metrics.track({
