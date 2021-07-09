@@ -16,7 +16,7 @@ The Metrics service makes all of its tracked data public and is consumed by ic.r
 
 🔗 [View Canister on ic.rocks](https://ic.rocks/principal/bsusq-diaaa-aaaah-qac5q-cai)
 
-## Usage
+## Usage (Motoko)
 
 Grab the [candid](./lib/Metrics.did) or [motoko types](./src/Types.mo). In your application canister:
 
@@ -56,6 +56,36 @@ let attributeId = switch(response) {
   case (#err(error)) null;
 };
 ```
+
+## Usage (Rust)
+
+A rust example can be found [here](./src/demo_rust/src/lib.rs).
+
+```rust
+let track_args = TrackerRequest {
+    attributeId: None,
+    action: Action::Set(AttributeDescription {
+        name: String::from("rust-counter"),
+        description: Some(String::from("A demo from rust")),
+        polling_frequency: Some(Frequency {
+            n: Nat::from(5),
+            period: Period::Minute,
+        }),
+        getter: Func {
+            principal: Principal::from_text("r7inp-6aaaa-aaaaa-aaabq-cai").unwrap(),
+            method: String::from("get"),
+        },
+    }),
+};
+let result: CallResult<(MetricsResponse,)> = ic_cdk::api::call::call(
+    Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap(),
+    "track",
+    (&track_args,),
+)
+.await;
+```
+
+---
 
 ### Get Data Series
 

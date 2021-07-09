@@ -8,6 +8,12 @@
       "main": "src/metrics/Metrics.mo",
       "type": "motoko"
     },
+    "RustDemo": {
+      "build": "cargo build --target wasm32-unknown-unknown --package demo_rust --release",
+      "candid": "src/demo_rust/src/counter.did",
+      "wasm": "target/wasm32-unknown-unknown/release/demo_rust.wasm",
+      "type": "custom"
+    },
     "frontend": {
       "dependencies": ["Metrics"],
       "frontend": {

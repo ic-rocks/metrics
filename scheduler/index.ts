@@ -5,11 +5,24 @@ import Metrics, { Frequency } from "../lib/Metrics.d";
 import idlFactory from "../lib/Metrics.did.js";
 (global as any).fetch = fetch;
 
-const agent = new HttpAgent({ host: "https://ic0.app" });
+const { canisterId, host } =
+  process.env.NODE_ENV === "production"
+    ? {
+        host: "https://ic0.app",
+        canisterId: "bsusq-diaaa-aaaah-qac5q-cai",
+      }
+    : {
+        host: "http://127.0.0.1:8000",
+        canisterId: "ryjl3-tyaaa-aaaaa-aaaba-cai",
+      };
+console.log(
+  `NODE_ENV=${process.env.NODE_ENV} host=${host} canisterId=${canisterId}`
+);
+const agent = new HttpAgent({ host });
 agent.fetchRootKey();
 const actor = Actor.createActor<Metrics>(idlFactory, {
   agent,
-  canisterId: "bsusq-diaaa-aaaah-qac5q-cai",
+  canisterId,
 });
 
 let tasks = new Map<bigint, [string, boolean, cron.ScheduledTask]>();
