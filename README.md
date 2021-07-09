@@ -10,7 +10,11 @@ For example, you can:
 
 Tracked data must be a `Nat` or `Int`. Currently, the minimum polling frequency is **one minute**.
 
-The Metrics service makes all of its tracked data public and is consumed by [ic.rocks](https://ic.rocks).
+The Metrics service makes all of its tracked data public and is consumed by ic.rocks.
+
+## Links
+
+🔗 [View Canister on ic.rocks](https://ic.rocks/principal/bsusq-diaaa-aaaah-qac5q-cai)
 
 ## Usage
 
