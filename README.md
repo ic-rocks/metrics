@@ -1,6 +1,6 @@
 # metrics
 
-Simple pull-based metrics canister that retrieves data from your application canisters on a specified schedule. Scheduling is currently done off-chain.
+Simple pull-based metrics canister that reads and saves data from your application canisters on a specified schedule. Scheduling is currently done off-chain.
 
 For example, you can:
 
@@ -18,10 +18,10 @@ The Metrics service makes all of its tracked data public and is consumed by ic.r
 
 ## Usage
 
-In your application canister:
+Grab the [candid](./lib/Metrics.did) or [motoko types](./src/Types.mo). In your application canister:
 
 ```motoko
-import T "SharedTypes";
+import T "Types";
 
 ...
 // This is the data you want to track

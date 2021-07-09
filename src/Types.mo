@@ -58,6 +58,26 @@ public type GetRequest = {
   period: ?GetPeriod;
 };
 
+public type Status = { #active; #paused };
+public type GetAttributeDescription = {
+  id: AttributeId;
+  name: Text;
+  description: ?Text;
+  polling_frequency: ?Frequency;
+  status: Status;
+};
+public type TimeSeries = {
+  timestamp: Int;
+  value: Int;
+};
+public type AttributeRecord = {
+  id: AttributeId;
+  principal: Principal;
+  description: AttributeDescription;
+  series: [TimeSeries];
+  status: Status;
+};
+
 public type MetricsService = actor {
   track : TrackerRequest -> async MetricsResponse;
 }

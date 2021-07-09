@@ -1,15 +1,15 @@
 import Prim "mo:prim";
 import Principal "mo:base/Principal";
 import ExperimentalCycles "mo:base/ExperimentalCycles";
-import ST "../SharedTypes";
+import T "../Types";
 
 actor Counter {
 
   stable var count = 0;
-  stable var attributeId : ?ST.AttributeId = null;
-  let Metrics = actor "ryjl3-tyaaa-aaaaa-aaaba-cai" : ST.MetricsService;
+  stable var attributeId : ?T.AttributeId = null;
+  let Metrics = actor "bsusq-diaaa-aaaah-qac5q-cai" : T.MetricsService;
 
-  public shared func track() : async ST.MetricsResponse {
+  public shared func track() : async T.MetricsResponse {
     let response = await Metrics.track({
       attributeId = null;
       action = #set({
@@ -29,7 +29,7 @@ actor Counter {
     response
   };
 
-  public shared func modify(desc: ST.AttributeDescription) : () {
+  public shared func modify(desc: T.AttributeDescription) : () {
     switch(attributeId) {
       case (?id) {
         ignore await Metrics.track({

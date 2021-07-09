@@ -13,8 +13,7 @@ import Time "mo:base/Time";
 import Debug "mo:base/Debug";
 import Result "mo:base/Result";
 
-import T "Types";
-import ST "../SharedTypes";
+import T "../Types";
 
 
 actor class Metrics() {
@@ -27,10 +26,10 @@ actor class Metrics() {
   let WEEK_NANOSECONDS = 7 * DAY_NANOSECONDS;
 
   stable var dataList : [var ?T.AttributeRecord] = [var];
-  stable var selfMemory : ?ST.AttributeId = null;
-  stable var selfCycles : ?ST.AttributeId = null;
+  stable var selfMemory : ?T.AttributeId = null;
+  stable var selfCycles : ?T.AttributeId = null;
 
-  public func init() : async (?ST.AttributeId, ?ST.AttributeId) {
+  public func init() : async (?T.AttributeId, ?T.AttributeId) {
     assert(selfMemory == null);
     assert(selfCycles == null);
 
@@ -75,7 +74,7 @@ actor class Metrics() {
     ExperimentalCycles.balance()
   };
 
-  public shared({ caller }) func track(request : ST.TrackerRequest) : async ST.MetricsResponse {
+  public shared({ caller }) func track(request : T.TrackerRequest) : async T.MetricsResponse {
     let (id, data) = switch(request.attributeId) {
       case (?id_) {
         if (id_ >= dataList.size()) {
@@ -194,7 +193,7 @@ actor class Metrics() {
     )
   };
 
-  public query func recordById(request: ST.GetRequest) : async Result.Result<T.AttributeRecord, ST.MetricsError> {
+  public query func recordById(request: T.GetRequest) : async Result.Result<T.AttributeRecord, T.MetricsError> {
     if (request.attributeId >= dataList.size()) {
       return #err(#InvalidId);
     };
@@ -215,7 +214,7 @@ actor class Metrics() {
     }
   };
 
-  public func execute(id: ST.AttributeId) : async ST.MetricsResponse {
+  public func execute(id: T.AttributeId) : async T.MetricsResponse {
     if (id >= dataList.size()) {
       return #err(#InvalidId);
     };
@@ -256,7 +255,7 @@ actor class Metrics() {
     }
   };
 
-  func readSeries(arr: [T.TimeSeries], maybeBefore: ?Int, maybeLimit: ?Nat, maybePeriod: ?ST.GetPeriod): [T.TimeSeries] {
+  func readSeries(arr: [T.TimeSeries], maybeBefore: ?Int, maybeLimit: ?Nat, maybePeriod: ?T.GetPeriod): [T.TimeSeries] {
     let limit = Nat.min(Option.get(maybeLimit, MAX_PAGE_SIZE), MAX_PAGE_SIZE);
 
     let timeEnd = switch(maybeBefore) {
