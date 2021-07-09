@@ -1,8 +1,8 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
 import cron from "node-cron";
 import fetch from "node-fetch";
-import Metrics, { Frequency } from "../.dfx/ic/canisters/Metrics/Metrics.d";
-import idlFactory from "../.dfx/ic/canisters/Metrics/Metrics.did.js";
+import Metrics, { Frequency } from "../lib/Metrics.d";
+import idlFactory from "../lib/Metrics.did.js";
 (global as any).fetch = fetch;
 
 const agent = new HttpAgent({ host: "https://ic0.app" });
