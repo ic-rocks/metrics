@@ -1,14 +1,14 @@
 # metrics
 
-Simple pull-based metrics canister that retrieves data from your application canisters on a specified schedule. The scheduling is done off-chain using [node-cron](https://www.npmjs.com/package/node-cron).
+Simple pull-based metrics canister that retrieves data from your application canisters on a specified schedule. Scheduling is currently done off-chain.
 
 For example, you can:
 
 - Track user count every day
-- Track memory usage every hour
-- Track ICP balance every minute
+- Track memory usage every 2 hours
+- Track ICP balance every 15 minutes
 
-Tracked data must be a `Nat` or `Int`. Currently, the minimum polling frequency is **one minute**.
+Tracked data must be a `Nat` or `Int`. Currently, the minimum polling frequency is **one minute**. If you have more real-time data, such as markets data, this is probably not the most optimal solution.
 
 The Metrics service makes all of its tracked data public and is consumed by ic.rocks.
 
@@ -114,9 +114,11 @@ Metrics.track({
 })
 ```
 
+You can also delete the entire data attribute and history by specifying the `#delete` action. **WARNING**: This is non-reversible!
+
 ### Tracking cycles and memory
 
-Add these functions for simple way to introspect cycles and memory.
+Add these functions for a simple way to introspect cycles and memory.
 
 ```
 import Prim "mo:prim";
@@ -137,7 +139,7 @@ Then, track these attributes as usual.
 
 ## Self-hosted
 
-You can deploy a metrics canister and run your own scheduler.
+You can deploy a metrics canister and run your own scheduler. The default implementation uses [node-cron](https://www.npmjs.com/package/node-cron).
 
 ```sh
 dfx canister create metrics
