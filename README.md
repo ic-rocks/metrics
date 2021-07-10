@@ -1,5 +1,7 @@
 # metrics
 
+![](./img/charts.png)
+
 Simple pull-based metrics canister that reads and saves data from your application canisters on a specified schedule. Scheduling is currently done off-chain.
 
 For example, you can:
